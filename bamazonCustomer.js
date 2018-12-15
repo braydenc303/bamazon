@@ -1,24 +1,43 @@
 // Challenge #1: Customer View (Minimum Requirement)
-
 // Create a MySQL Database called bamazon.
-
 // Then create a Table inside of that database called products.
-
 // The products table should have each of the following columns:
-
 // item_id (unique id for each product)
-
 // product_name (Name of product)
-
 // department_name
-
 // price (cost to customer)
-
 // stock_quantity (how much of the product is available in stores)
-
 // Populate this database with around 10 different products. (i.e. Insert "mock" data rows into this database and table).
+var inquirer = require("inquirer");
+var mysql = require("mysql");
+var fs = require("fs");
 
+var connection = mysql.createConnection({
+    host: "localhost",
+    port: 3306,
+    user: "root",
+    password: "root",
+    database: "bamazon_DB"
+  });
+  
+  connection.connect(function(err) {
+    if (err) throw err;
+    console.log("connected as id " + connection.threadId + "\n");
+    readProducts();
+  });
 // Then create a Node application called bamazonCustomer.js. Running this application will first display all of the items available for sale. Include the ids, names, and prices of products for sale.
+function readProducts() {
+    console.log("Selecting all products...\n");
+    connection.query("SELECT * FROM products", function(err, res) {
+      if (err) throw err;
+      // Log all results of the SELECT statement
+      res.forEach(function(item){
+          console.log(`Item Number: ${item.item_id} | Item Name: ${item.product_name} | Department: ${item.department_name} | Price: $ ${item.price}`);
+      });
+    //   console.log(res);
+    //   connection.end();
+    });
+  };
 
 // The app should then prompt users with two messages.
 
