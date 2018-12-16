@@ -105,7 +105,7 @@ function order(){
                         }
                     ]
                 );
-                console.log(`Thank you. your order of ${quant} ${items[index]} for a total of ${quant * prices[index]} will ship soon. We will notify you as soon as it is on it's way. Please print this page for your records.`)
+                console.log(`Thank you. your order of ${quant} ${items[index]} for a total of $${quant * prices[index]} will ship soon. We will notify you as soon as it is on it's way. Please print this page for your records.`)
             } else {
                 // If not, the app should log a phrase like Insufficient quantity!, and then prevent the order from going through.
                 console.log(`\nInsufficient quantity. We only have ${qty[index]} on hand. Please place a smaller order.\n`);
