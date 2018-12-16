@@ -27,6 +27,7 @@ var connection = mysql.createConnection({
   });
 // Then create a Node application called bamazonCustomer.js. Running this application will first display all of the items available for sale. Include the ids, names, and prices of products for sale.
 var items = [];
+var prices = [];
 var qty = [];
 
 var currentStock = [];
@@ -39,6 +40,7 @@ function readProducts() {
           console.log(`Item Number: ${item.item_id} | Item Name: ${item.product_name} | Department: ${item.department_name} | Price: $ ${item.price}`);
           //This would also be a good place to push item choices and qty into an array to check, or, I could simply save the response object for later reference.
           items.push(item.product_name);
+          prices.push(item.price);
           qty.push(item.stock_qty);
       });
       currentStock = res;
@@ -59,7 +61,7 @@ function order(){
             type: "input",
             message: "\nEnter the item number you would like to order.",
             validate: function(input){
-                if(typeof parseInt(input.quant) === "number") {
+                if(typeof parseInt(input.item) === "number") {
                     return true;
                 } else {
                     return false;
@@ -82,21 +84,35 @@ function order(){
     ])
         .then (function(inquirerRes){
             // Once the customer has placed the order, your application should check if your store has enough of the product to meet the customer's request.
-            var index = inquirerRes.item - 1;
-            // console.log(index);
-            if(inquirerRes.quant <= qty[index]){
-                fillOrder();
-            } else {
-                console.log(`\nInsufficient quantity. We only have ${qty[index]} on hand. Please place a smaller order.`);
-                return false;
-            }
-            // If not, the app should log a phrase like Insufficient quantity!, and then prevent the order from going through.
-            // However, if your store does have enough of the product, you should fulfill the customer's order.
-
+            // If your store does have enough of the product, you should fulfill the customer's order.
             // This means updating the SQL database to reflect the remaining quantity.
             // Once the update goes through, show the customer the total cost of their purchase.
+            var index = inquirerRes.item - 1;
+            var quant = inquirerRes.quant;
+
+            // var item = items[inquirerRes.item];
+            // console.log(index);
+            if(inquirerRes.quant <= qty[index]){
+                console.log(inquirerRes);
+                connection.query(
+                    "UPDATE products SET ? WHERE ?",
+                    [
+                        {
+                            stock_qty: qty[index]-inquirerRes.quant
+                        },
+                        {
+                            item_id: inquirerRes.item
+                        }
+                    ]
+                );
+                console.log(`Thank you. your order of ${quant} ${items[index]} for a total of ${quant * prices[index]} will ship soon. We will notify you as soon as it is on it's way. Please print this page for your records.`)
+            } else {
+                // If not, the app should log a phrase like Insufficient quantity!, and then prevent the order from going through.
+                console.log(`\nInsufficient quantity. We only have ${qty[index]} on hand. Please place a smaller order.\n`);
+                order();
+            }
+
         });
-        connection.end();
 };
 
 
