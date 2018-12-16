@@ -1,5 +1,15 @@
 # bamazon
-First database homework assignment
+First database homework assignment.
+
+I fulfilled the requirements for the first level of this assignment.
+
+Here is a gif of the workflow for my solution.
+
+![Bamazon Gif](./bamazons.gif)
+
+I will go back and add more functionality as soon as I can.
+
+Here are the requirements that were included in the assignment.
 
 # Node.js & MySQL
 
