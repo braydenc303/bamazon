@@ -3,6 +3,11 @@ CREATE DATABASE bamazon_DB;
 
 USE bamazon_DB;
 
+ALTER TABLE products
+ADD COLUMN product_sales INT;
+
+SELECT * FROM products;
+
 CREATE TABLE products (
 	item_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
     product_name VARCHAR(30),
@@ -10,6 +15,21 @@ CREATE TABLE products (
     price DECIMAL(10,2),
     stock_qty INT
 );
+
+USE bamazon_DB;
+
+CREATE TABLE departments (
+    department_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    department_name VARCHAR(30),
+    over_head_costs INT
+);
+
+INSERT INTO departments (department_name, over_head_costs)
+	VALUES("Cutlery", 5000),
+    ("Kitchen Tools", 8000),
+    ("Apparel", 3000);
+    
+SELECT * FROM departments;
 
 INSERT INTO products (product_name, department_name, price, stock_qty)
 VALUES ("Chef's Knife","Cutlery",150.00,10),

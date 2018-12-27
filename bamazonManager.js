@@ -1,6 +1,5 @@
 var inquirer = require("inquirer");
 var mysql = require("mysql");
-var fs = require("fs");
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -16,10 +15,6 @@ var connection = mysql.createConnection({
     readProducts();
   });
 
-//   var items = [];
-//   var prices = [];
-//   var qty = [];
-//   var currentStock = [];
 
 function readProducts() {
     //The items variable will need to passed around as an argument between functions in order to ensure that the choices are available to inquirer when needed.
@@ -89,6 +84,13 @@ function addInv(items){
 };
 
 function addNew(items){
+    var departments = []
+    connection.query(`SELECT * FROM departments`, function(err, response){
+        if (err) throw err;
+        response.forEach(function(department){
+            departments.push(department.department_name);
+        })
+    })
     inquirer
         .prompt([
             {
@@ -100,7 +102,7 @@ function addNew(items){
                 name:"department_name",
                 type:"list",
                 message: "Choose the item's department.",
-                choices: ["Cutlery", "Kitchen Tools", "Apparel"]
+                choices: departments
             },
             {
                 name:"price",
@@ -129,7 +131,9 @@ function addNew(items){
             }
         ]) .then(function(answers){
             console.log(answers);
-            connection.query(`INSERT INTO products VALUES (?, ?, ?, ?, ?)`, [null, answers.product_name, answers.department_name, answers.price, answers.stock_qty], function(err, res){
+            console.log(answers.product_name);
+            console.log(null, answers.product_name, answers.department_name, answers.price, answers.stock_qty);
+            connection.query(`INSERT INTO products VALUES (?, ?, ?, ?, ?, ?)`, [null, answers.product_name, answers.department_name, answers.price, answers.stock_qty, 0], function(err, res){
                 if (err) throw err;
                 console.log("Adding records:");
                 readProducts(items);
