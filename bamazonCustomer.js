@@ -10,7 +10,6 @@
 // Populate this database with around 10 different products. (i.e. Insert "mock" data rows into this database and table).
 var inquirer = require("inquirer");
 var mysql = require("mysql");
-var fs = require("fs");
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -94,13 +93,23 @@ function order(items){
                 if (inquirerRes.quant <= res[0].stock_qty){
                     connection.query(`UPDATE products SET ? WHERE ?`, 
                     [{
-                        stock_qty: res[0].stock_qty - inquirerRes.quant
+                        stock_qty: parseInt(res[0].stock_qty) - parseInt(inquirerRes.quant)
                     },{
                         product_name: inquirerRes.item
                     }
                     ], function(err, response){
                         if (err) throw err;
                         console.log(`Thank you. Your order of ${inquirerRes.quant} ${inquirerRes.item} for a total of $${inquirerRes.quant * res[0].price} will ship soon.\nWe will notify you as soon as it is on it's way.\nPlease print this page for your records.\n`);
+                        connection.query(`UPDATE products SET ? WHERE ?`, [
+                            {
+                                product_sales: parseInt(res[0].product_sales) + (parseInt(inquirerRes.quant) * parseInt(res[0].price))
+                            },
+                            {
+                                product_name: inquirerRes.item
+                            }
+                        ], function(err, response){
+                            if (err) throw err;
+                        })
                         readProducts();
                     });
                 } else {
