@@ -16,67 +16,79 @@ var connection = mysql.createConnection({
     readProducts();
   });
 
-  var items = [];
-  var prices = [];
-  var qty = [];
-  var currentStock = [];
+//   var items = [];
+//   var prices = [];
+//   var qty = [];
+//   var currentStock = [];
 
 function readProducts() {
+    //The items variable will need to passed around as an argument between functions in order to ensure that the choices are available to inquirer when needed.
+    var items = [];
     console.log("Selecting all products...\n");
     connection.query("SELECT * FROM products", function(err, res) {
       if (err) throw err;
       // Log all results of the SELECT statement
       res.forEach(function(item){
           console.log(`Item Number: ${item.item_id} | Item Name: ${item.product_name} | Department: ${item.department_name} | Price: $ ${item.price} | Qty: ${item.stock_qty}\n`);
-          //This would also be a good place to push item choices and qty into an array to check, or, I could simply save the response object for later reference.
           items.push(item.product_name);
-          prices.push(item.price);
-          qty.push(item.stock_qty);
       });
       currentStock = res;
-    //   console.log(items);
-      managerOptions();
-    //   console.log(currentStock);
-    //   console.log(items, qty);
-    //   connection.end();
+      managerOptions(items);
     });
 };
 
-function readLow(){
+function readLow(items){
     connection.query("SELECT * FROM products WHERE stock_qty < 5", function(err, res){
         if (err) throw err;
         res.forEach(function(item){
             console.log(`Item Number: ${item.item_id} | Item Name: ${item.product_name} | Department: ${item.department_name} | Price: $ ${item.price} | Qty: ${item.stock_qty}\n`);
         });
-        managerOptions();
+        managerOptions(items);
     });
 };
 
-function addInv(){
+function addInv(items){
     inquirer
         .prompt([
             {
                 name: "item",
                 type: "list",
-                message: "Choose the time number you would like to update.",
+                message: "Choose the item you would like to update.",
                 choices: items
             },
             {
                 name: "qty",
                 type: "input",
-                message: "Enter the quantity to add."
+                message: "Enter the quantity to add.",
+                validate: function(input){
+                    if(typeof parseInt(input.qty) === "number") {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
             }
         ]) .then(function(answers){
-            console.log(`\nAdding ${answers.qty} to stock of ${answers.item}.\n`);
-            connection.query(`UPDATE products SET stock_qty = stock_qty + ${answers.qty} WHERE product_name = "${answers.item}"`, function(err, res){
-                if (err) throw err;
-                console.log("Item Updated");
-                readProducts();
-            });
+            connection.query(`SELECT * FROM products WHERE ?`, [{product_name: answers.item}], function(err, res){
+                console.log(`\nAdding ${answers.qty} to stock of ${answers.item}.\n`);
+                connection.query(`UPDATE products SET ? WHERE ?`, [
+                    {
+                        stock_qty: parseInt(res[0].stock_qty) + parseInt(answers.qty)
+                    },
+                    {
+                        product_name: answers.item
+                    }
+                ], function(err, res){
+                    if (err) throw err;
+                    console.log("Item Updated");
+                    readProducts(items);
+                });
+            })
+        
         });
 };
 
-function addNew(){
+function addNew(items){
     inquirer
         .prompt([
             {
@@ -93,25 +105,39 @@ function addNew(){
             {
                 name:"price",
                 type:"input",
-                message:"Enter the retail price for the item."
+                message:"Enter the retail price for the item.",
+                validate: function(input){
+                    if(typeof parseInt(input.price) === "number") {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
             },
             {
                 name:"stock_qty",
                 type:"input",
                 message:"Enter the qty on hand if any.",
+                validate: function(input){
+                    if(typeof parseInt(input.stock_qty) === "number") {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                },
                 default: 0
             }
         ]) .then(function(answers){
             console.log(answers);
-            connection.query(`INSERT INTO products VALUES (NULL, '${answers.product_name}', '${answers.department_name}', ${answers.price}, ${answers.stock_qty})`, function(err, res){
+            connection.query(`INSERT INTO products VALUES (?, ?, ?, ?, ?)`, [null, answers.product_name, answers.department_name, answers.price, answers.stock_qty], function(err, res){
                 if (err) throw err;
                 console.log("Adding records:");
-                readProducts();
+                readProducts(items);
             })
         })
 }
 
-function managerOptions(){
+function managerOptions(items){
     inquirer
         .prompt([
             {
@@ -126,13 +152,13 @@ function managerOptions(){
                 readProducts();
                 break;
                 case "View Low Inventory":
-                readLow();
+                readLow(items);
                 break;
                 case "Add to Inventory":
-                addInv();
+                addInv(items);
                 break;
                 case "Add New Product":
-                addNew();
+                addNew(items);
                 break;
                 case "Exit":
                 connection.end();
