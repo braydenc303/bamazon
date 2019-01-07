@@ -19,7 +19,7 @@ var connection = mysql.createConnection({
 function viewSales() {
     // console.log(" department_id  department_name over_head_costs product_sales   total_profit");
     // console.log("-----------------------------------------------------------------------------");
-
+    // ON departments.department_name = products.department_name
     connection.query(`	
     SELECT
      *,
@@ -27,7 +27,7 @@ function viewSales() {
      (SUM(product_sales) - over_head_costs) total_profit
     FROM
      departments
-    CROSS JOIN products ON departments.department_name = products.department_name
+    LEFT JOIN products ON departments.department_name = products.department_name
     GROUP BY
      departments.department_name
     ORDER BY
